@@ -1,37 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskBoard
 
-## Getting Started
+## プロジェクト概要
 
-First, run the development server:
+TaskBoard は Notion のような操作感でタスクをドラッグ＆ドロップしながら管理できるアプリケーションです。Next.js (App Router) をベースに、`@dnd-kit` による滑らかなドラッグ体験、Supabase + Prisma による永続化、Hono で実装した API を組み合わせています。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 主な機能
+
+- **カラム管理**: 未着手 / 進行中 / 完了 の 3 カラムでタスクを整理
+- **ドラッグ＆ドロップ**: カラム間やカラム内の並び替えを滑らかに実行
+- **タスク作成**: 各カラムでタスクを追加 (Enter キーで即登録 / Shift+Enter で改行)
+- **オプティミスティック更新**: 並び替え操作は即座に UI へ反映し、その後 Supabase に保存
+- **Supabase 認証**: GitHub OAuth を利用してログインし、ユーザーごとにタスクを分離
+
+## 技術スタック
+
+| 領域 | 技術 |
+| ---- | ---- |
+| フロントエンド | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS |
+| ドラッグ&ドロップ | `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/modifiers` |
+| バックエンド | Hono (Next.js Route Handler 上), Supabase Auth |
+| データベース | Supabase (PostgreSQL) + Prisma ORM |
+| 開発ツール | Biome (lint/format), npm scripts |
+
+## セットアップ手順
+
+1. 依存関係のインストール
+   ```bash
+   npm install
+   ```
+2. `.env.local` を作成し、Supabase の接続情報と GitHub OAuth クレデンシャルを設定
+   ```dotenv
+   DATABASE_URL="postgresql://..."      # Supabase コネクションプーラー URL
+   DIRECT_URL="postgresql://..."        # マイグレーション用ダイレクト接続
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   GITHUB_CLIENT_ID=...
+   GITHUB_SECRET=...
+   ```
+3. Prisma のマイグレーションを適用
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+
+## npm スクリプト
+
+| コマンド | 内容 |
+| -------- | ---- |
+| `npm run dev` | 開発サーバーを起動 (http://localhost:3000) |
+| `npm run lint` | Biome による静的解析 |
+| `npm run format` | Biome で整形 |
+| `npm run build` | Turbopack を無効化した webpack ビルド |
+
+## ディレクトリ構成 (抜粋)
+
+```
+taskboard/
+├── app/                      # App Router エントリ
+│   └── api/tasks             # Hono で実装したタスク API
+├── features/
+│   └── taskboard/            # UI / hooks / services
+├── prisma/                   # Prisma スキーマ
+├── scripts/build.js          # Turbopack を抑制するビルドスクリプト
+└── utils/supabase/           # Supabase クライアント & ミドルウェア
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 開発メモ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- ドラッグ挙動は DnD Overlay による視覚クローンで強化しています。Hook の呼び出し順を崩さないよう注意してください。
+- Supabase の API は Hono の `app.fetch` を介して Route Handler から実行しています。Next.js の Edge runtime には対応していないため `runtime = "nodejs"` を維持してください。
+- ビルドは `NEXT_DISABLE_TURBOPACK=1` を付与した webpack を使用しています。Turbopack を使う場合は Google Fonts のダウンロード制限などに注意が必要です。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ライセンス
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# TaskBoard
+本リポジトリは現在ライセンスを明示していません。利用や再配布を検討する場合はリポジトリオーナーに問い合わせてください。
