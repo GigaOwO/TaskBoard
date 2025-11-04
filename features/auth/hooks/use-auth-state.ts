@@ -1,66 +1,56 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import type { User } from "@supabase/supabase-js";
+import { useCallback, useEffect, useState } from "react";
 
-type SupabaseUser = NonNullable<
-  Awaited<
-    ReturnType<ReturnType<typeof createClient>["auth"]["getUser"]>
-  >["data"]["user"]
->;
-
-interface AuthState {
-  user: SupabaseUser | null;
-  isLoading: boolean;
+interface SessionResponse {
+  user: User | null;
 }
 
-/** Tracks Supabase auth session changes on the client. */
-export function useAuthState(): AuthState {
-  const supabase = useMemo(() => createClient(), []);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+/** Fetches the Supabaseセッション情報を Route Handler 経由で取得するフック。 */
+export function useAuthState() {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    supabase.auth
-      .getUser()
-      .then(({ data, error }) => {
-        if (!isMounted) {
-          return;
-        }
-
-        if (error) {
-          setUser(null);
-        } else {
-          setUser(data.user ?? null);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/session", {
+        method: "GET",
+        cache: "no-store",
       });
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!isMounted) {
-          return;
-        }
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
 
-        setUser(session?.user ?? null);
-        setLoading(false);
-      },
-    );
+      const payload = (await res.json()) as SessionResponse;
+      setUser(payload.user ?? null);
+    } catch (error) {
+      console.error("Failed to fetch session", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
+    void refresh();
+
+    function handleFocus() {
+      void refresh();
+    }
+
+    window.addEventListener("focus", handleFocus);
     return () => {
-      isMounted = false;
-      listener?.subscription.unsubscribe();
+      window.removeEventListener("focus", handleFocus);
     };
-  }, [supabase]);
+  }, [refresh]);
 
   return {
     user,
     isLoading,
+    refresh,
   };
 }

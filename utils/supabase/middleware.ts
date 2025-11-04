@@ -10,12 +10,12 @@ function ensureEnv(name: string, value: string | undefined): string {
 }
 
 const supabaseUrl = ensureEnv(
-  "NEXT_PUBLIC_SUPABASE_URL",
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  "SUPABASE_URL",
+  process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
 );
 const supabaseKey = ensureEnv(
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  "SUPABASE_ANON_KEY",
+  process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
 export function createClient(request: NextRequest) {

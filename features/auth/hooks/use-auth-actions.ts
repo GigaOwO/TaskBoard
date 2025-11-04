@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { useCallback, useState } from "react";
 
 interface AuthActions {
   signInWithGitHub: () => Promise<void>;
@@ -11,35 +10,40 @@ interface AuthActions {
 
 /** Provides reusable Supabase auth actions for UI components. */
 export function useAuthActions(): AuthActions {
-  const supabase = useMemo(() => createClient(), []);
   const [isProcessing, setProcessing] = useState(false);
 
   const signInWithGitHub = useCallback(async () => {
     try {
       setProcessing(true);
-      await supabase.auth.signInWithOAuth({
-        provider: "github",
-        options: {
-          redirectTo:
-            typeof window !== "undefined" ? window.location.href : undefined,
-        },
-      });
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const currentUrl = window.location.href;
+      const returnTo = encodeURIComponent(currentUrl);
+      window.location.href = `/api/auth/sign-in/github?returnTo=${returnTo}`;
     } finally {
       setProcessing(false);
     }
-  }, [supabase]);
+  }, []);
 
   const signOut = useCallback(async () => {
     try {
       setProcessing(true);
-      await supabase.auth.signOut();
+      await fetch("/api/auth/sign-out", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
       if (typeof window !== "undefined") {
         window.location.reload();
       }
     } finally {
       setProcessing(false);
     }
-  }, [supabase]);
+  }, []);
 
   return {
     signInWithGitHub,

@@ -63,7 +63,7 @@ export function AuthPanel({
   counts,
   refresh,
 }: AuthPanelProps) {
-  const { user, isLoading: authLoading } = useAuthState();
+  const { user, isLoading: authLoading, refresh: refreshAuth } = useAuthState();
   const { signInWithGitHub, signOut, isProcessing } = useAuthActions();
 
   if (authLoading && isLoading) {
@@ -88,6 +88,7 @@ export function AuthPanel({
             type="button"
             onClick={() => {
               void refresh();
+              void refreshAuth();
             }}
             className="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 dark:hover:bg-amber-900/40"
           >
@@ -135,6 +136,7 @@ export function AuthPanel({
         <AuthButton
           onClick={() => {
             void refresh();
+            void refreshAuth();
           }}
         >
           更新
