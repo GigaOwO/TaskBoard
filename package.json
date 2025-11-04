@@ -1,0 +1,37 @@
+{
+  "name": "taskboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "node ./scripts/build.js",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.2.1",
+    "@prisma/client": "^6.1.0",
+    "@supabase/ssr": "^0.5.0",
+    "@dnd-kit/core": "^6.0.8",
+    "@dnd-kit/modifiers": "^7.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "nanoid": "^5.0.7",
+    "hono": "^4.5.11",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "next": "16.0.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "babel-plugin-react-compiler": "1.0.0",
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "@biomejs/biome": "2.2.0",
+    "prisma": "^6.1.0"
+  }
+}
